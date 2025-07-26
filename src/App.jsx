@@ -1,35 +1,64 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useMemo, useState, useEffect } from "react";
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import { lightTheme, darkTheme } from "./theme";
+import { Routes, Route, Outlet } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "./redux/userSlice.js";
+import { jwtDecode } from "jwt-decode";
+import NavBar from "./components/navbar.jsx";
+import LandingPage from "./pages/landing";
+import LoginPage from "./pages/auth/login";
+import SignupPage from "./pages/auth/signupPage";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [mode, setMode] = useState("light"); // toggleable
+  const dispatch = useDispatch();
+  const theme = useMemo(
+    () => (mode === "dark" ? darkTheme : lightTheme),
+    [mode]
+  );
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+
+    if (token) {
+      localStorage.setItem("authToken", token);
+      const decodedToken = jwtDecode(token);
+      dispatch(loginSuccess(decodedToken));
+    } else {
+      const savedToken = localStorage.getItem("authToken");
+      if (savedToken) {
+        const decodedUser = jwtDecode(savedToken);
+        dispatch(loginSuccess(decodedUser));
+      }
+    }
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Routes>
+        <Route path="/" element={<RootLayout />}>
+          <Route
+            index
+            element={<LandingPage mode={mode} setMode={setMode} />}
+          />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="signup" element={<SignupPage />} />
+        </Route>
+      </Routes>
+    </ThemeProvider>
+  );
 }
 
-export default App
+const RootLayout = () => {
+  return (
+    <>
+      <NavBar />
+      <Outlet />
+    </>
+  );
+};
+
+export default App;
