@@ -17,12 +17,15 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import GoogleIcon from "@mui/icons-material/Google";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../../redux/userSlice";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -37,6 +40,33 @@ const LoginPage = () => {
   const handleSigninWithGoogle = (e) => {
     e.preventDefault();
     window.location.href = "http://localhost:3000/auth/google";
+  }
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // needed if using cookies/session
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Something went wrong.");
+
+      dispatch(loginSuccess(data.user)); // assuming data.user contains user info
+      alert("Login successful!");
+    } catch (error) {
+      return alert("Failed to login. Please try again.", error.message);
+    }
   }
 
   return (
@@ -101,7 +131,7 @@ const LoginPage = () => {
               }}
             />
           </FormControl>
-          <Button variant="contained" fullWidth sx={{ mt: 1 }}>
+          <Button variant="contained" fullWidth sx={{ mt: 1 }} onClick={handleLogin}>
             Login
           </Button>
         </Box>

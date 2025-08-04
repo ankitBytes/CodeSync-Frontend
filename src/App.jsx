@@ -2,13 +2,13 @@ import React, { useMemo, useState, useEffect } from "react";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import { lightTheme, darkTheme } from "./theme";
 import { Routes, Route, Outlet } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { loginSuccess } from "./redux/userSlice.js";
 import { jwtDecode } from "jwt-decode";
 import NavBar from "./components/navbar.jsx";
 import LandingPage from "./pages/landing";
 import LoginPage from "./pages/auth/login";
 import SignupPage from "./pages/auth/signupPage";
+import { useDispatch } from "react-redux";
+import { loginSuccess, logout } from "./redux/userSlice.js";
 
 function App() {
   const [mode, setMode] = useState("light"); // toggleable
@@ -19,20 +19,24 @@ function App() {
   );
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/auth/me", {
+          credentials: "include",
+        });
 
-    if (token) {
-      localStorage.setItem("authToken", token);
-      const decodedToken = jwtDecode(token);
-      dispatch(loginSuccess(decodedToken));
-    } else {
-      const savedToken = localStorage.getItem("authToken");
-      if (savedToken) {
-        const decodedUser = jwtDecode(savedToken);
-        dispatch(loginSuccess(decodedUser));
+        if (res.ok) {
+          const user = await res.json();
+          dispatch(loginSuccess(user));
+        } else {
+          dispatch(logout());
+        }
+      } catch (err) {
+        dispatch(logout());
       }
-    }
+    };
+
+    checkAuth();
   }, []);
 
   return (

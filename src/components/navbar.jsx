@@ -129,6 +129,9 @@ function NavBar() {
                   e.preventDefault();
                   navigate("/login");
                 }}
+                sx={{
+                  padding: "0.5rem 2rem",
+                }}
               >
                 Sign In
               </Button>
