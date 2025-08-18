@@ -17,17 +17,22 @@ import { logout } from "../redux/userSlice";
 import { useNavigate } from "react-router-dom";
 
 import Logo from "../assets/logo/logo.png";
-
-const pages = ["Products", "Pricing", "Blog"];
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
+import UserAvatar from "./userAvatar";
 
 function NavBar() {
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const dispatch = useDispatch();
   const currentUser = useSelector((state) => state.user.currentUser);
+  const profileData = useSelector((state) => state.user.currentUserData);
   const navigate = useNavigate();
 
-  const user = useSelector((state) => state.user.user);
+  const userId = currentUser?.user?.id ?? currentUser?.id;
+  const settings = currentUser
+    ? [
+        { name: "Profile", link: `/profile/${userId}` },
+        { name: "Logout", link: "/logout" },
+      ]
+    : [];
 
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
@@ -37,9 +42,16 @@ function NavBar() {
     setAnchorElUser(null);
   };
 
-  const handleNavigateMenu = (e, menu) => {
-    e.preventDefault();
-    navigate(`/${menu}`);
+  const handleSettingClick = (link) => {
+    return (e) => {
+      e.preventDefault();
+      if (link === "/logout") {
+        handleLogout();
+      } else {
+        navigate(link);
+      }
+      handleCloseUserMenu();
+    };
   };
 
   const handleLogout = async () => {
@@ -77,7 +89,9 @@ function NavBar() {
               height: "80px",
               display: "flex",
               alignItems: "center",
+              cursor: "pointer",
             }}
+            onClick={() => navigate("/")}
           />
 
           {/* Profile Avatar - always on the right */}
@@ -86,9 +100,7 @@ function NavBar() {
               <>
                 <Tooltip title={currentUser?.displayName?.split(" ")[0] || ""}>
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar alt="Profile" src={currentUser?.image}>
-                      {currentUser?.displayName?.charAt(0) || "U"}
-                    </Avatar>
+                    <UserAvatar name={profileData?.name || currentUser?.displayName || ""} src={profileData?.profilePicture || ""} size={40} />
                   </IconButton>
                 </Tooltip>
                 <Menu
@@ -110,14 +122,10 @@ function NavBar() {
                   {settings.map((setting) => (
                     <MenuItem
                       key={setting}
-                      onClick={
-                        setting == logout
-                          ? (e) => handleNavigateMenu(e, setting)
-                          : () => handleLogout()
-                      }
+                      onClick={handleSettingClick(setting.link)}
                     >
                       <Typography sx={{ textAlign: "center" }}>
-                        {setting}
+                        {setting.name}
                       </Typography>
                     </MenuItem>
                   ))}

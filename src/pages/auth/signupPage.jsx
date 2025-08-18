@@ -10,6 +10,8 @@ import {
 import GoogleIcon from "@mui/icons-material/Google";
 import { useDispatch, useSelector } from "react-redux";
 import { loginSuccess, setEmail, clearEmail } from "../../redux/userSlice";
+import { showNotification, hideNotification } from "../../redux/notificationSlice";
+import { apiUrl } from "../../utils/api";
 import { useNavigate } from "react-router-dom";
 
 const SignupPage = () => {
@@ -75,12 +77,15 @@ const EnterEmail = ({ setOtpSent }) => {
 
   const handleSignup = async () => {
     if (!email) {
-      alert("Please fill in all fields.");
+      dispatch(showNotification({ message: "Please fill in all fields.", severity: "error" }));
+      setTimeout(() => {
+        dispatch(hideNotification());
+      }, 3000);
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:3000/auth/sendOtp", {
+      const response = await fetch(apiUrl('/auth/sendOtp'), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -96,11 +101,17 @@ const EnterEmail = ({ setOtpSent }) => {
       }
 
       dispatch(setEmail(email)); // store email in Redux
-      alert("OTP sent to your email.");
+      dispatch(showNotification({ message: "OTP sent to your email.", severity: "success" }));
+      setTimeout(() => {
+        dispatch(hideNotification());
+      }, 3000);
       setOtpSent(true);
     } catch (error) {
       console.error("Error sending OTP:", error.message);
-      // alert("Failed to send OTP. Please try again.");
+      dispatch(showNotification({ message: "Failed to send OTP. Please try again.", severity: "error" }));
+      setTimeout(() => {
+        dispatch(hideNotification());
+      }, 3000);
       setError(error.message);
     }
   };
@@ -150,12 +161,15 @@ const EnterOTP = ({ setOtpVerified }) => {
     const otpValue = otp.join("");
 
     if (otpValue.length !== 6) {
-      alert("Please enter a 6-digit OTP.");
+      dispatch(showNotification({ message: "Please enter a 6-digit OTP.", severity: "error" }));
+      setTimeout(() => {
+        dispatch(hideNotification());
+      }, 3000);
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:3000/auth/verifyOtp", {
+      const response = await fetch(apiUrl('/auth/verifyOtp'), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -170,22 +184,19 @@ const EnterOTP = ({ setOtpVerified }) => {
         throw new Error(data.message || "Something went wrong.");
       }
 
-      // const signUpResponse = await fetch("http://localhost:3000/auth/signup", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   credentials: "include", // needed for cookies
-      //   body: JSON.stringify({ email, password: data.password }), // assuming password is returned in data
-      // })
-
-      alert("OTP verified successfully!");
+      dispatch(showNotification({ message: "OTP verified successfully!", severity: "success" }));
+      setTimeout(() => {
+        dispatch(hideNotification());
+      }, 3000);
       setOtpVerified(true);
     } catch (error) {
       console.log("Error verifying OTP:", error.message);
       dispatch(clearEmail());
       setOtp(["", "", "", "", "", ""]); // reset OTP input
-      alert("Failed to verify OTP. Please try again.");
+      dispatch(showNotification({ message: "Failed to verify OTP. Please try again.", severity: "error" }));
+      setTimeout(() => {
+        dispatch(hideNotification());
+      }, 3000);
     }
   };
 
@@ -223,13 +234,82 @@ const EnterOTP = ({ setOtpVerified }) => {
 const BasicDetails = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const email = useSelector((state) => state.user.email);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
-    
-  }
+    function isValidPassword(password) {
+      const minLength = /.{12,}/;
+      const uppercase = /[A-Z]/;
+      const number = /[0-9]/;
+      const specialChar = /[!@#$%^&*(),.?":{}|<>]/;
+
+      return (
+        minLength.test(password) &&
+        uppercase.test(password) &&
+        number.test(password) &&
+        specialChar.test(password)
+      );
+    }
+
+    if (!isValidPassword(password)) {
+      dispatch(showNotification({ message: "Password must be at least 12 characters long, contain an uppercase letter, a number, and a special character.", severity: "error" }));
+      setTimeout(() => {
+        dispatch(hideNotification());
+      }, 3000);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      dispatch(showNotification({ message: "Passwords do not match.", severity: "error" }));
+      setTimeout(() => {
+        dispatch(hideNotification());
+      }, 3000);
+      return;
+    }
+
+    try {
+      const response = await fetch(apiUrl('/auth/signup'), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // needed for cookies
+        body: JSON.stringify({ email, password }),
+      });
+
+      console.log("Response status:", response);
+
+      if (response.status === 409) {
+        dispatch(showNotification({ message: "Email already exists. Please try logging in.", severity: "error" }));
+        setTimeout(() => {
+          dispatch(hideNotification());
+        }, 3000);
+        dispatch(clearEmail()); // clear email from Redux
+        return navigate("/login");
+      }
+      if (!response.ok) {
+        throw new Error("Something went wrong.");
+      }
+
+      const data = await response.json();
+      dispatch(loginSuccess(data?.user ?? data));
+      dispatch(showNotification({ message: "Signup successful!", severity: "success" }));
+      setTimeout(() => {
+        dispatch(hideNotification());
+      }, 3000);
+      dispatch(clearEmail()); // clear email from Redux
+      window.location.href = "/"; // redirect to home or dashboard
+    } catch (error) {
+      console.error("Error during signup:", error.message);
+      dispatch(showNotification({ message: "Failed to sign up. Please try again.", severity: "error" }));
+      setTimeout(() => {
+        dispatch(hideNotification());
+      }, 3000);
+    }
+  };
   return (
     <Box gap={2} display={"flex"} flexDirection={"column"} paddingTop={"2rem"}>
       <TextField
@@ -250,7 +330,7 @@ const BasicDetails = () => {
         variant="contained"
         fullWidth
         sx={{ mt: 1 }}
-        // onClick={handleSignup}
+        onClick={handleSubmit}
       >
         Sign Up
       </Button>
