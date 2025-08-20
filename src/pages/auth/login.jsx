@@ -78,8 +78,8 @@ const LoginPage = () => {
         return;
       }
 
-      if (!response.ok)
-        throw new Error(data.message || "Something went wrong.");
+      `if (!response.ok)
+        throw new Error(data.message || "Something went wrong.");`
 
       dispatch(loginSuccess(data?.user ?? data)); // normalize shape
       dispatch(

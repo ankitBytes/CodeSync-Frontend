@@ -7,18 +7,20 @@ import {
 } from "@mui/material";
 import { lightTheme, darkTheme } from "./theme";
 import { Routes, Route, Outlet } from "react-router-dom";
-import NavBar from "./components/navbar.jsx";
-import LandingPage from "./pages/landing";
-import LoginPage from "./pages/auth/login";
-import SignupPage from "./pages/auth/signupPage";
+import NavBar from "./components/navbar";
+import LandingPage from "./pages/landing.jsx";
+import LoginPage from "./pages/auth/login.jsx";
+import SignupPage from "./pages/auth/signupPage.jsx";
 import Profile from "./pages/user/profile.jsx";
 import ProfileUpdate from "./pages/user/updateProfile.jsx";
+import CreateSession from "./pages/session/createSession.jsx";
+import Session from "./pages/session/session.jsx";
 import { useDispatch } from "react-redux";
 import {
   loginSuccess,
   logout,
   setCurrentUserData,
-} from "./redux/userSlice.js";
+} from "./redux/userSlice";
 import Loader from "./components/loader";
 import { useSelector } from "react-redux";
 import "./utils/httpClient";
@@ -35,7 +37,7 @@ function App() {
   );
 
   const [currentUser, setCurrentUser] = useState(null);
-  const [_, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -57,11 +59,11 @@ function App() {
           await fetchProfileData(authUser?.id);
         } else {
           dispatch(logout());
-          setLoading(false); // 👈 End loading even if not authenticated
+          setIsLoading(false); // 👈 End loading even if not authenticated
         }
       } catch (err) {
         dispatch(logout());
-        setLoading(false);
+        setIsLoading(false);
         console.error("Error checking authentication:", err);
       }
     };
@@ -87,7 +89,7 @@ function App() {
       } catch (error) {
         console.error("Error fetching profile:", error);
       } finally {
-        setLoading(false); // 👈 End loading once done
+        setIsLoading(false); // 👈 End loading once done
       }
     };
 
@@ -95,6 +97,15 @@ function App() {
   }, [dispatch]);
 
   // Remove page-blocking gate; use global overlay instead
+
+  if (isLoading) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Loader />
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -115,6 +126,8 @@ function App() {
             path="/profile/update/:id"
             element={currentUser ? <ProfileUpdate /> : <LoginPage />}
           />
+          <Route path="/:id/create-session" element={<CreateSession />} />
+          <Route path="/session/:sessionId" element={<Session />} />
         </Route>
       </Routes>
     </ThemeProvider>

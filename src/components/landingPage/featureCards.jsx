@@ -1,3 +1,4 @@
+import React from 'react';
 import { Box, Container, Typography, Button } from "@mui/material";
 
 const FeatureCards = ({ feature, icon }) => {
