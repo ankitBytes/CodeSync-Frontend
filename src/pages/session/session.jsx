@@ -1,54 +1,102 @@
-import React, { useState, useEffect } from "react";
-import Editor from "@monaco-editor/react";
-import { io } from "socket.io-client";
+import React, { useState } from "react";
+import {
+  Box,
+  Container,
+  Grid,
+  Stack,
+  Alert,
+  Snackbar,
+} from "@mui/material";
+
+// different components
+import SessionNavbar from "../../components/session/sessionNavbar";
+import Output from "../../components/session/output";
+import ProblemDescription from "../../components/session/problemStatement";
+import Chat from "../../components/session/chat";
+import CodeEditor from "../../components/session/codeEditor";
+
 const Session = () => {
-  const [code, setCode] = useState("// Start coding...");
-  const [socket, setSocket] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
 
-  useEffect(() => {
-    const newSocket = io("http://localhost:3000");
-    setSocket(newSocket);
-    
-    newSocket.on("code-update", (newCode) => {
-      setCode(newCode);
-    });
-
-    return () => {
-      newSocket.off("code-update");
-      newSocket.disconnect();
-    };
-  }, []);
-
-  const handleEditorChange = (value) => {
-    setCode(value);
-    if (socket && socket.connected) {
-      socket.emit("code-change", value);
-    }
+  // Close snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
-  if (!socket) {
-    return (
-      <div style={{ height: "90vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div>Connecting to session...</div>
-      </div>
-    );
-  }
-
   return (
-    <div style={{ height: "90vh" }}>
-      <Editor
-        height="100%"
-        defaultLanguage="javascript"
-        theme="vs-dark"
-        value={code}
-        onChange={handleEditorChange}
-        options={{
-          minimap: { enabled: false },
-          fontSize: 14,
-          wordWrap: "on"
-        }}
-      />
-    </div>
+    <Box
+      sx={{
+        backgroundColor: "#0a0a0a",
+        height: "100vh",
+        color: "white",
+        overflow: "hidden",
+      }}
+    >
+      {/* Session Header */}
+      <SessionNavbar />
+
+      {/* Main Content */}
+      <Container maxWidth="xl" sx={{ py: 2 }}>
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            height: "90vh",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {/* Left Panel - Problem & Chat */}
+          <Grid item xs={12} xl={4} size={4} overflowY={"scroll"}>
+            <Stack spacing={2} sx={{ height: "100%", overflowY: "hidden" }}>
+              <ProblemDescription />
+              <Chat />
+            </Stack>
+          </Grid>
+
+          {/* Right Panel - Code Editor & Output */}
+          <Grid item xs={12} xl={8} size={8}>
+            <Stack spacing={2} sx={{ height: "100%" }}>
+              <CodeEditor />
+              <Output />
+            </Stack>
+          </Grid>
+        </Grid>
+      </Container>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{
+            backgroundColor:
+              snackbar.severity === "success"
+                ? "#00ff88"
+                : snackbar.severity === "error"
+                ? "#ff6b6b"
+                : snackbar.severity === "warning"
+                ? "#ffd93d"
+                : "#4ecdc4",
+            color:
+              snackbar.severity === "success" || snackbar.severity === "warning"
+                ? "#000"
+                : "#fff",
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

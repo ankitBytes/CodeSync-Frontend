@@ -137,7 +137,7 @@ function App() {
 const RootLayout = () => {
   return (
     <>
-      <NavBar /> {/* 👈 This won't flash during loading anymore */}
+      {/* <NavBar /> 👈 This won't flash during loading anymore */}
       <Outlet />
     </>
   );
