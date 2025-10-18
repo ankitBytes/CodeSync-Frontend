@@ -7,6 +7,7 @@ import {
   Alert,
   Snackbar,
 } from "@mui/material";
+import socket from "../../utils/socket";
 
 // different components
 import SessionNavbar from "../../components/session/sessionNavbar";
@@ -21,6 +22,10 @@ const Session = () => {
     message: "",
     severity: "info",
   });
+
+  socket.on("connect", () => {
+    console.log("Socket connected in session page");
+  })
 
   // Close snackbar
   const handleCloseSnackbar = () => {

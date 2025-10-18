@@ -26,6 +26,8 @@ import { useSelector } from "react-redux";
 import "./utils/httpClient";
 import { apiUrl } from "./utils/api";
 import GlobalSnackbar from "./components/GlobalSnackbar";
+import { io } from "socket.io-client";
+import { useLocation } from "react-router-dom";
 
 function App() {
   const [mode, setMode] = useState("light"); // toggleable
@@ -35,9 +37,13 @@ function App() {
     () => (mode === "dark" ? darkTheme : lightTheme),
     [mode]
   );
-
+  const socket = io("ws://localhost:3000");
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  socket.on("connect", () => {
+    console.log("Socket.Io connected successfully");
+  });
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -135,9 +141,14 @@ function App() {
 }
 
 const RootLayout = () => {
+  const location = useLocation();
+
+  // Hide navbar when route matches /session/:sessionId
+  const hideNavbar = location.pathname.startsWith("/session/");
+
   return (
     <>
-      {/* <NavBar /> 👈 This won't flash during loading anymore */}
+      {!hideNavbar && <NavBar />}
       <Outlet />
     </>
   );
