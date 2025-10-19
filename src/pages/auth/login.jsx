@@ -44,7 +44,7 @@ const LoginPage = () => {
 
   const handleSigninWithGoogle = (e) => {
     e.preventDefault();
-    window.location.href = "http://localhost:3000/auth/google";
+    window.location.href = "https://codesync-backend-6zmp.onrender.com/auth/google";
   };
 
   const handleLogin = async () => {
