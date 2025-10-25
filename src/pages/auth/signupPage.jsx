@@ -278,8 +278,6 @@ const BasicDetails = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      console.log("Response status:", response);
-
       if (response.status === 409) {
         dispatch(showNotification({ message: "Email already exists. Please try logging in.", severity: "error" }));
         setTimeout(() => {
@@ -299,7 +297,7 @@ const BasicDetails = () => {
         dispatch(hideNotification());
       }, 3000);
       dispatch(clearEmail()); // clear email from Redux
-      window.location.href = "/"; // redirect to home or dashboard
+      window.location.href = `${data.redirectUrl}`; // redirect to home or dashboard
     } catch (error) {
       console.error("Error during signup:", error.message);
       dispatch(showNotification({ message: "Failed to sign up. Please try again.", severity: "error" }));
