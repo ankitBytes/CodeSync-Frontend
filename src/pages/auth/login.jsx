@@ -188,6 +188,9 @@ const LoginPage = () => {
         <Typography variant="body2" sx={{ mt: 2 }}>
           Don't have an account? <a href="/signup">Sign up</a>
         </Typography>
+        <Typography variant="body2" sx={{ mt: 1 }}>
+          Forgot your password? <a href="/forgot-password">Reset password</a>
+        </Typography>
       </Paper>
     </Box>
   );

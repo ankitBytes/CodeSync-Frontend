@@ -15,6 +15,7 @@ import Profile from "./pages/user/profile.jsx";
 import ProfileUpdate from "./pages/user/updateProfile.jsx";
 import CreateSession from "./pages/session/createSession.jsx";
 import Session from "./pages/session/session.jsx";
+import AuthSuccess from "./pages/auth/authSuccess.jsx";
 import { useDispatch } from "react-redux";
 import {
   loginSuccess,
@@ -28,6 +29,7 @@ import { apiUrl } from "./utils/api";
 import GlobalSnackbar from "./components/GlobalSnackbar";
 import { io } from "socket.io-client";
 import { useLocation } from "react-router-dom";
+import ForgotPassword from "./pages/auth/forgotPassword.jsx";
 
 function App() {
   const [mode, setMode] = useState("light"); // toggleable
@@ -127,6 +129,8 @@ function App() {
           />
           <Route path="login" element={<LoginPage />} />
           <Route path="signup" element={<SignupPage />} />
+          <Route path="success" element={<AuthSuccess />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="/profile/:id" element={<Profile />} />
           <Route
             path="/profile/update/:id"

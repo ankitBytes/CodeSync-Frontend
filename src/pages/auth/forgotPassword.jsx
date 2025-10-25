@@ -10,11 +10,14 @@ import {
 import GoogleIcon from "@mui/icons-material/Google";
 import { useDispatch, useSelector } from "react-redux";
 import { loginSuccess, setEmail, clearEmail } from "../../redux/userSlice";
-import { showNotification, hideNotification } from "../../redux/notificationSlice";
+import {
+  showNotification,
+  hideNotification,
+} from "../../redux/notificationSlice";
 import { apiUrl } from "../../utils/api";
 import { useNavigate } from "react-router-dom";
 
-const SignupPage = () => {
+const ForgotPassword = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
 
@@ -40,7 +43,7 @@ const SignupPage = () => {
         </Typography>
 
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          Create an account to get started
+          Reset your password to regain access to your account
         </Typography>
 
         {otpVerified ? (
@@ -52,16 +55,6 @@ const SignupPage = () => {
             <Box mt={2} display="flex" flexDirection="column" gap={2}>
               <EnterEmail setOtpSent={setOtpSent} />
             </Box>
-
-            <Divider sx={{ my: 3 }}>OR</Divider>
-
-            <Button variant="outlined" fullWidth startIcon={<GoogleIcon />}>
-              Sign up with Google
-            </Button>
-
-            <Typography variant="body2" sx={{ mt: 2 }}>
-              Already have an account? <a href="/login">Log In</a>
-            </Typography>
           </>
         )}
       </Paper>
@@ -77,7 +70,12 @@ const EnterEmail = ({ setOtpSent }) => {
 
   const handleSignup = async () => {
     if (!email) {
-      dispatch(showNotification({ message: "Please fill in all fields.", severity: "error" }));
+      dispatch(
+        showNotification({
+          message: "Please fill in all fields.",
+          severity: "error",
+        })
+      );
       setTimeout(() => {
         dispatch(hideNotification());
       }, 3000);
@@ -85,13 +83,13 @@ const EnterEmail = ({ setOtpSent }) => {
     }
 
     try {
-      const response = await fetch(apiUrl('/auth/sendOtp'), {
+      const response = await fetch(apiUrl("/auth/sendOtp"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include", // needed if using cookies/session
-        body: JSON.stringify({ email, purpose: "signup" }),
+        body: JSON.stringify({ email, purpose: "resetPassword" }),
       });
 
       const data = await response.json();
@@ -101,14 +99,24 @@ const EnterEmail = ({ setOtpSent }) => {
       }
 
       dispatch(setEmail(email)); // store email in Redux
-      dispatch(showNotification({ message: "OTP sent to your email.", severity: "success" }));
+      dispatch(
+        showNotification({
+          message: "OTP sent to your email.",
+          severity: "success",
+        })
+      );
       setTimeout(() => {
         dispatch(hideNotification());
       }, 3000);
       setOtpSent(true);
     } catch (error) {
       console.error("Error sending OTP:", error.message);
-      dispatch(showNotification({ message: "Failed to send OTP. Please try again.", severity: "error" }));
+      dispatch(
+        showNotification({
+          message: "Failed to send OTP. Please try again.",
+          severity: "error",
+        })
+      );
       setTimeout(() => {
         dispatch(hideNotification());
       }, 3000);
@@ -131,7 +139,7 @@ const EnterEmail = ({ setOtpSent }) => {
         sx={{ mt: 1 }}
         onClick={handleSignup}
       >
-        Sign Up
+        Send OTP
       </Button>
     </Box>
   );
@@ -159,7 +167,12 @@ const EnterOTP = ({ setOtpVerified }) => {
     const otpValue = otp.join("");
 
     if (otpValue.length !== 6) {
-      dispatch(showNotification({ message: "Please enter a 6-digit OTP.", severity: "error" }));
+      dispatch(
+        showNotification({
+          message: "Please enter a 6-digit OTP.",
+          severity: "error",
+        })
+      );
       setTimeout(() => {
         dispatch(hideNotification());
       }, 3000);
@@ -167,7 +180,7 @@ const EnterOTP = ({ setOtpVerified }) => {
     }
 
     try {
-      const response = await fetch(apiUrl('/auth/verifyOtp'), {
+      const response = await fetch(apiUrl("/auth/verifyOtp"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -182,7 +195,12 @@ const EnterOTP = ({ setOtpVerified }) => {
         throw new Error(data.message || "Something went wrong.");
       }
 
-      dispatch(showNotification({ message: "OTP verified successfully!", severity: "success" }));
+      dispatch(
+        showNotification({
+          message: "OTP verified successfully!",
+          severity: "success",
+        })
+      );
       setTimeout(() => {
         dispatch(hideNotification());
       }, 3000);
@@ -191,7 +209,12 @@ const EnterOTP = ({ setOtpVerified }) => {
       console.log("Error verifying OTP:", error.message);
       dispatch(clearEmail());
       setOtp(["", "", "", "", "", ""]); // reset OTP input
-      dispatch(showNotification({ message: "Failed to verify OTP. Please try again.", severity: "error" }));
+      dispatch(
+        showNotification({
+          message: "Failed to verify OTP. Please try again.",
+          severity: "error",
+        })
+      );
       setTimeout(() => {
         dispatch(hideNotification());
       }, 3000);
@@ -230,7 +253,7 @@ const EnterOTP = ({ setOtpVerified }) => {
 };
 
 const BasicDetails = () => {
-  const [password, setPassword] = useState("");
+  const [newPassword, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const email = useSelector((state) => state.user.email);
 
@@ -238,30 +261,41 @@ const BasicDetails = () => {
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
-    function isValidPassword(password) {
+    function isValidPassword(newPassword) {
       const minLength = /.{12,}/;
       const uppercase = /[A-Z]/;
       const number = /[0-9]/;
       const specialChar = /[!@#$%^&*(),.?":{}|<>]/;
 
       return (
-        minLength.test(password) &&
-        uppercase.test(password) &&
-        number.test(password) &&
-        specialChar.test(password)
+        minLength.test(newPassword) &&
+        uppercase.test(newPassword) &&
+        number.test(newPassword) &&
+        specialChar.test(newPassword)
       );
     }
 
-    if (!isValidPassword(password)) {
-      dispatch(showNotification({ message: "Password must be at least 12 characters long, contain an uppercase letter, a number, and a special character.", severity: "error" }));
+    if (!isValidPassword(newPassword)) {
+      dispatch(
+        showNotification({
+          message:
+            "Password must be at least 12 characters long, contain an uppercase letter, a number, and a special character.",
+          severity: "error",
+        })
+      );
       setTimeout(() => {
         dispatch(hideNotification());
       }, 3000);
       return;
     }
 
-    if (password !== confirmPassword) {
-      dispatch(showNotification({ message: "Passwords do not match.", severity: "error" }));
+    if (newPassword !== confirmPassword) {
+      dispatch(
+        showNotification({
+          message: "Passwords do not match.",
+          severity: "error",
+        })
+      );
       setTimeout(() => {
         dispatch(hideNotification());
       }, 3000);
@@ -269,40 +303,37 @@ const BasicDetails = () => {
     }
 
     try {
-      const response = await fetch(apiUrl('/auth/signup'), {
+      const response = await fetch(apiUrl("/auth/update-password"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include", // needed for cookies
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, newPassword }),
       });
 
       console.log("Response status:", response);
-
-      if (response.status === 409) {
-        dispatch(showNotification({ message: "Email already exists. Please try logging in.", severity: "error" }));
-        setTimeout(() => {
-          dispatch(hideNotification());
-        }, 3000);
-        dispatch(clearEmail()); // clear email from Redux
-        return navigate("/login");
-      }
       if (!response.ok) {
         throw new Error("Something went wrong.");
       }
 
       const data = await response.json();
-      dispatch(loginSuccess(data?.user ?? data));
-      dispatch(showNotification({ message: "Signup successful!", severity: "success" }));
+      dispatch(
+        showNotification({ message: "Password updated successfully!", severity: "success" })
+      );
       setTimeout(() => {
         dispatch(hideNotification());
       }, 3000);
       dispatch(clearEmail()); // clear email from Redux
-      window.location.href = "/"; // redirect to home or dashboard
+      window.location.href = "/login"; // redirect to home or dashboard
     } catch (error) {
-      console.error("Error during signup:", error.message);
-      dispatch(showNotification({ message: "Failed to sign up. Please try again.", severity: "error" }));
+      console.error("Error during reset password:", error.message);
+      dispatch(
+        showNotification({
+          message: "Failed to reset password. Please try again.",
+          severity: "error",
+        })
+      );
       setTimeout(() => {
         dispatch(hideNotification());
       }, 3000);
@@ -330,10 +361,10 @@ const BasicDetails = () => {
         sx={{ mt: 1 }}
         onClick={handleSubmit}
       >
-        Sign Up
+        Update Password
       </Button>
     </Box>
   );
 };
 
-export default SignupPage;
+export default ForgotPassword;
