@@ -64,6 +64,8 @@ const LoginPage = () => {
       });
 
       const data = await response.json();
+      console.log(data);
+      
 
       if (response.status === 401) {
         dispatch(
@@ -88,7 +90,7 @@ const LoginPage = () => {
       setTimeout(() => {
         dispatch(hideNotification());
       }, 3000);
-      window.location.href = "/"; // redirect to home or dashboard
+      window.location.href = `${data.redirectUrl}`; // redirect to home or dashboard
     } catch (error) {
       dispatch(
         showNotification({
