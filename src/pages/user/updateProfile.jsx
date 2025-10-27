@@ -13,12 +13,18 @@ import {
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { apiUrl } from "../../utils/api";
+import {
+  showNotification,
+  hideNotification,
+} from "../../redux/notificationSlice";
 
 const ProfileUpdate = () => {
   const currentUser = useSelector((state) => state.user.currentUser);
   const profileData = useSelector((state) => state.user.currentUserData);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const userId = currentUser?.user?.id ?? currentUser?.id;
 
   const [formData, setFormData] = useState({
@@ -88,11 +94,17 @@ const ProfileUpdate = () => {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
 
-      alert("Profile updated successfully!");
+      dispatch(showNotification({ message: "Profile updated successfully!", severity: "success" }));
+      setTimeout(() => {
+        dispatch(hideNotification());
+      }, 3000);
       navigate(`/profile/${userId}`);
     } catch (err) {
       console.error(err);
-      alert("Error updating profile");
+      dispatch(showNotification({ message: "Error updating profile", severity: "error" }));
+      setTimeout(() => {
+        dispatch(hideNotification());
+      }, 3000);
     }
   };
 

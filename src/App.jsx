@@ -17,11 +17,7 @@ import CreateSession from "./pages/session/createSession.jsx";
 import Session from "./pages/session/session.jsx";
 import AuthSuccess from "./pages/auth/authSuccess.jsx";
 import { useDispatch } from "react-redux";
-import {
-  loginSuccess,
-  logout,
-  setCurrentUserData,
-} from "./redux/userSlice";
+import { loginSuccess, logout, setCurrentUserData } from "./redux/userSlice";
 import Loader from "./components/loader";
 import { useSelector } from "react-redux";
 import "./utils/httpClient";
@@ -34,7 +30,9 @@ import ForgotPassword from "./pages/auth/forgotPassword.jsx";
 function App() {
   const [mode, setMode] = useState("light"); // toggleable
   const dispatch = useDispatch();
-  const isGlobalLoading = useSelector((state) => state.loading.pendingRequests > 0);
+  const isGlobalLoading = useSelector(
+    (state) => state.loading.pendingRequests > 0
+  );
   const theme = useMemo(
     () => (mode === "dark" ? darkTheme : lightTheme),
     [mode]
@@ -80,16 +78,15 @@ function App() {
       try {
         const token = localStorage.getItem("token");
         const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
-        const response = await fetch(
-          apiUrl(`/user/profile/${userId}`),
-          {
-            headers: authHeaders,
-            credentials: "include",
-          }
-        );
+        const response = await fetch(apiUrl(`/user/profile/${userId}`), {
+          headers: authHeaders,
+          credentials: "include",
+        });
 
         if (response.ok) {
           const data = await response.json();
+          console.log(data.profile);
+
           dispatch(setCurrentUserData(data.profile));
         } else {
           console.error("Failed to fetch profile data");
