@@ -90,6 +90,7 @@ function App() {
 
         if (response.ok) {
           const data = await response.json();
+          console.log(data.profile);
           dispatch(setCurrentUserData(data.profile));
         } else {
           console.error("Failed to fetch profile data");
